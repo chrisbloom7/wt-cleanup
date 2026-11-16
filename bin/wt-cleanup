@@ -6,7 +6,7 @@
 # one `wt remove` call per marked entry.
 #
 # Usage:
-#   wt_cleanup [options] [-- <wt-args>...]
+#   wt-cleanup [options] [-- <wt-args>...]
 #
 # Options:
 #       --delete-branch           Initial: delete branch on remove (default: keep)
@@ -31,12 +31,33 @@
 #   ?                   toggle preview pane
 #   Esc                 abort without changes
 set -euo pipefail
-# Capture the caller's cwd before cd'ing into the script dir — every `wt`
-# invocation needs to operate on the user's repo, not on ~/.dotfiles.
-INVOKE_CWD="${PWD}"
-cd "$(dirname "$0")"
-source "${PWD}/helpers/trap_and_trace.sh"
-PATH="${PWD}:${PATH}"
+
+if (( BASH_VERSINFO[0] < 4 )); then
+  echo "Error: wt-cleanup requires bash 4 or newer (found ${BASH_VERSION})" >&2
+  exit 1
+fi
+
+# Resolve the real script location, following symlinks (macOS readlink lacks -f)
+_source="${BASH_SOURCE[0]}"
+while [[ -L "${_source}" ]]; do
+  _dir="$(cd -P "$(dirname "${_source}")" && pwd)"
+  _source="$(readlink "${_source}")"
+  [[ "${_source}" != /* ]] && _source="${_dir}/${_source}"
+done
+SCRIPT_PATH="$(cd -P "$(dirname "${_source}")" && pwd)/$(basename "${_source}")"
+LIBEXEC_DIR="$(cd -P "$(dirname "${SCRIPT_PATH}")/../libexec/wt-cleanup" && pwd)"
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+if [[ -z "${NO_COLOR:-}" && -t 1 ]]; then
+  _c_red=$'\033[1;31m' _c_green=$'\033[1;32m' _c_blue=$'\033[1;34m' _c_reset=$'\033[0m'
+else
+  _c_red='' _c_green='' _c_blue='' _c_reset=''
+fi
+log_info()    { echo "${_c_blue}Info:${_c_reset} $*"; }
+log_success() { echo "${_c_green}Success:${_c_reset} $*"; }
+log_error()   { echo "${_c_red}Error:${_c_reset} $*" >&2; }
 
 # ---------------------------------------------------------------------------
 # Defaults
@@ -55,7 +76,7 @@ WT_PASSTHROUGH=()
 # ---------------------------------------------------------------------------
 usage() {
   # Print the header comment block, stopping at the first non-comment line
-  awk 'NR == 1 && /^#!/ { next } !/^#/ { exit } { sub(/^# ?/, ""); print }' "${PWD}/$(basename "$0")"
+  awk 'NR == 1 && /^#!/ { next } !/^#/ { exit } { sub(/^# ?/, ""); print }' "${SCRIPT_PATH}"
 }
 
 # ---------------------------------------------------------------------------
@@ -107,16 +128,16 @@ trap 'rm -rf "${TMPDIR_WORK}"' EXIT
 LIST_JSON="${TMPDIR_WORK}/list.json"
 LIST_ROWS="${TMPDIR_WORK}/rows.tsv"
 STATE_FILE="${TMPDIR_WORK}/state"
-HELPER="${PWD}/helpers/wt_cleanup_helper.rb"
+HELPER="${LIBEXEC_DIR}/wt_cleanup_helper.rb"
 
 # ---------------------------------------------------------------------------
 # Fetch worktree list
 # ---------------------------------------------------------------------------
-wt_list_args=(-C "${INVOKE_CWD}" list --format json)
+wt_list_args=(-C "${PWD}" list --format json)
 [[ "${USE_FULL}"         == true ]] && wt_list_args+=(--full)
 [[ "${INCLUDE_BRANCHES}" == true ]] && wt_list_args+=(--branches)
 
-log_info "Fetching worktrees from ${INVOKE_CWD}..."
+log_info "Fetching worktrees from ${PWD}..."
 if ! wt "${wt_list_args[@]}" > "${LIST_JSON}" 2>"${TMPDIR_WORK}/wt_list.err"; then
   log_error "wt list failed:"
   cat "${TMPDIR_WORK}/wt_list.err" >&2
@@ -294,7 +315,7 @@ errors=()
 for branch in "${branches[@]}"; do
   log_info "Removing ${branch}..."
   set +e
-  wt -C "${INVOKE_CWD}" remove "${remove_flags[@]}" "${branch}" ${WT_PASSTHROUGH[@]+"${WT_PASSTHROUGH[@]}"}
+  wt -C "${PWD}" remove "${remove_flags[@]}" "${branch}" ${WT_PASSTHROUGH[@]+"${WT_PASSTHROUGH[@]}"}
   rc=$?
   set -e
   if [[ ${rc} -ne 0 ]]; then

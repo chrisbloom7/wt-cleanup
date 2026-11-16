@@ -1,14 +1,14 @@
-# tests/bin/helpers/wt_cleanup_helper_spec.rb
-# Tests for bin/helpers/wt_cleanup_helper.rb
+# tests/helpers/wt_cleanup_helper_spec.rb
+# Tests for libexec/wt-cleanup/wt_cleanup_helper.rb
 #
-# Run with: ruby tests/bin/helpers/wt_cleanup_helper_spec.rb
+# Run with: ruby tests/helpers/wt_cleanup_helper_spec.rb
 
 require 'minitest/autorun'
 require 'minitest/spec'
 require 'json'
 require 'stringio'
 
-HELPERS_DIR = File.expand_path('../../../bin/helpers', __dir__) unless defined?(HELPERS_DIR)
+HELPERS_DIR = File.expand_path('../../libexec/wt-cleanup', __dir__) unless defined?(HELPERS_DIR)
 require File.join(HELPERS_DIR, 'wt_cleanup_helper')
 
 # ---------------------------------------------------------------------------
