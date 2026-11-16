@@ -3,6 +3,8 @@
 
 TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TESTS_DIR}/.." && pwd)"
+# Used by the .bats files that load this helper, which ShellCheck does not see.
+# shellcheck disable=SC2034
 REPO_BIN="${REPO_ROOT}/bin"
 
 # _setup_common
