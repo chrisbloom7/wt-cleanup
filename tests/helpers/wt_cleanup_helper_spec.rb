@@ -354,3 +354,80 @@ describe 'WtCleanupHelper.run' do
     _(stderr.string).must_include 'Usage'
   end
 end
+
+# ---------------------------------------------------------------------------
+# Worktrunk JSON schema 2 (real `wt list --format json` output, paths scrubbed)
+# ---------------------------------------------------------------------------
+SCHEMA2_FIXTURE = File.expand_path('../fixtures/wt-list-schema2.json', __dir__)
+SCHEMA2_NOW     = Time.iso8601('2026-11-16T03:00:00Z').to_i
+
+describe 'WtCleanupHelper.normalize' do
+  let(:schema2) { JSON.parse(File.read(SCHEMA2_FIXTURE)) }
+  let(:entries) { WtCleanupHelper.normalize(schema2) }
+
+  it 'unwraps the schema-2 items array' do
+    _(entries.map { |e| e['branch'] }).must_equal schema2['items'].map { |i| i['branch'] }
+  end
+
+  it 'passes a schema-1 array through unchanged' do
+    _(WtCleanupHelper.normalize([WORKTREE_DIRTY])).must_equal [WORKTREE_DIRTY]
+  end
+
+  it 'rejects other JSON' do
+    _ { WtCleanupHelper.normalize('nope') }.must_raise ArgumentError
+  end
+
+  it 'treats an items-less object as empty' do
+    _(WtCleanupHelper.normalize({ 'schema' => 2 })).must_equal []
+  end
+
+  it 'maps a worktree item onto the schema-1 keys' do
+    main = entries.find { |e| e['branch'] == 'main' }
+    _(main['kind']).must_equal 'worktree'
+    _(main['path']).must_equal '/tmp/repos/wt-cleanup'
+    _(main['is_main']).must_equal true
+    _(main['main_state']).must_equal 'is_main'
+    _(main['commit']['short_sha']).must_match(/\A\h{7,}\z/)
+    _(main['commit']['timestamp']).must_be_kind_of Integer
+    _(main['working_tree']).must_include 'modified'
+    _(main['remote']).must_equal({ 'name' => 'origin', 'branch' => 'main', 'ahead' => 0, 'behind' => 0 })
+  end
+
+  it 'maps a branch-only item (no worktree object) to kind branch' do
+    backup = entries.find { |e| e['branch'].start_with?('backup/') }
+    _(backup['kind']).must_equal 'branch'
+    _(backup['path']).must_be_nil
+    _(backup['working_tree']).must_be_nil
+    _(backup['main_state']).must_equal 'integrated'
+    _(backup['integration_reason']).must_equal 'ancestor'
+    _(backup['remote']).must_be_nil
+  end
+
+  it 'formats rows from schema 2 the way it does from schema 1' do
+    rows = entries.map { |e| WtCleanupHelper.format_row(e, now: SCHEMA2_NOW).gsub(/\e\[[0-9;]*m/, '') }
+    main = rows.find { |r| r.start_with?("main\t") }.split("\t")
+    _(main[2].strip).must_equal 'synced'
+    _(main[3].strip).must_equal 'clean'
+    _(main[4].strip).must_equal 'main'
+    backup = rows.find { |r| r.start_with?('backup/') }.split("\t")
+    _(backup[2].strip).must_equal 'local'
+    _(backup[3].strip).must_equal '-'
+    _(backup[4].strip).must_equal 'merged'
+  end
+
+  it 'format mode accepts the schema-2 envelope' do
+    stdout = StringIO.new
+    rc = WtCleanupHelper.run(['format'], stdin: File.open(SCHEMA2_FIXTURE), stdout: stdout, now: SCHEMA2_NOW)
+    _(rc).must_equal 0
+    _(stdout.string.lines.size).must_equal schema2['items'].size
+  end
+
+  it 'preview mode accepts the schema-2 envelope' do
+    stdout = StringIO.new
+    rc = WtCleanupHelper.run(['preview', 'main'], stdin: File.open(SCHEMA2_FIXTURE), stdout: stdout, now: SCHEMA2_NOW)
+    _(rc).must_equal 0
+    _(stdout.string).must_include 'Branch:   main'
+    _(stdout.string).must_include 'State:    is main'
+    _(stdout.string).must_include 'vs origin/main'
+  end
+end

@@ -1,5 +1,7 @@
 # wt_cleanup_helper.rb
 # Formats `wt list --full --branches --format json` output for an fzf picker.
+# Reads both Worktrunk JSON layouts: schema 2 (an object with an `items` array,
+# the default since Worktrunk 0.82) and schema 1 (a bare array).
 # Called by bin/wt_cleanup — not executable.
 #
 # Modes:
@@ -17,6 +19,7 @@
 #   wt list --full --branches --format json | ruby wt_cleanup_helper.rb preview <branch>
 
 require 'json'
+require 'time'
 
 module WtCleanupHelper
   module_function
@@ -112,6 +115,52 @@ module WtCleanupHelper
     line.length > width ? "#{line[0, width - 1]}…" : line
   end
 
+  # Returns the list entries from `wt list --format json` output in the
+  # schema-1 shape the formatters below read. Accepts the schema-2 envelope
+  # (`{"schema": 2, "items": [...]}`) and the schema-1 bare array.
+  def normalize(data)
+    case data
+    when Array then data
+    when Hash  then Array(data['items']).map { |item| from_schema2(item) }
+    else raise ArgumentError, "unexpected wt list JSON: #{data.class}"
+    end
+  end
+
+  # Maps one schema-2 item onto the schema-1 keys used by the formatters.
+  # Schema 2 has no equivalent of schema 1's `remote.gone`, so a branch whose
+  # upstream was deleted shows as `local` here.
+  def from_schema2(item)
+    worktree = item['worktree']
+    head     = item['head'] || {}
+    default  = item['default_branch']
+    upstream = item['upstream']
+    display  = item['display'] || {}
+
+    {
+      'branch'             => item['branch'],
+      'kind'               => worktree ? 'worktree' : 'branch',
+      'path'               => worktree && worktree['path'],
+      'commit'             => {
+        'sha'       => head['sha'],
+        'short_sha' => head['short_sha'],
+        'message'   => head['subject'],
+        'timestamp' => head['committed_at'] && Time.iso8601(head['committed_at']).to_i
+      },
+      'working_tree'       => worktree && worktree['changes'],
+      'worktree'           => worktree,
+      'main_state'         => display['state'],
+      'integration_reason' => default&.dig('integration', 'reason'),
+      'main'               => default && default.slice('ahead', 'behind', 'diff'),
+      'remote'             => upstream && {
+        'name' => upstream['remote'], 'branch' => upstream['branch'],
+        'ahead' => upstream['ahead'], 'behind' => upstream['behind']
+      },
+      'is_main'            => worktree ? worktree['main'] : display['state'] == 'is_main',
+      'is_current'         => worktree ? worktree['current'] : false,
+      'is_previous'        => worktree ? worktree['previous'] : false
+    }
+  end
+
   # Stable identifier used by fzf to round-trip selection through the preview
   # pane and back to the shell. Branch name is unique within a repo.
   def id_for(entry)
@@ -201,7 +250,7 @@ module WtCleanupHelper
     mode = argv[0]
     case mode
     when 'format'
-      data = JSON.parse(stdin.read)
+      data = normalize(JSON.parse(stdin.read))
       data.each { |entry| stdout.puts format_row(entry, now: now) }
       0
     when 'preview'
@@ -210,7 +259,7 @@ module WtCleanupHelper
         stderr.puts 'Usage: wt_cleanup_helper.rb preview <branch>'
         return 1
       end
-      data = JSON.parse(stdin.read)
+      data = normalize(JSON.parse(stdin.read))
       entry = data.find { |e| e['branch'].to_s == branch }
       if entry.nil?
         stderr.puts "No entry found for branch: #{branch}"

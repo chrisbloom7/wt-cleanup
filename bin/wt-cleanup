@@ -145,7 +145,7 @@ if ! wt "${wt_list_args[@]}" > "${LIST_JSON}" 2>"${TMPDIR_WORK}/wt_list.err"; th
 fi
 
 # Empty array? Nothing to do.
-if [[ ! -s "${LIST_JSON}" ]] || ! ruby -rjson -e 'exit JSON.parse(STDIN.read).any? ? 0 : 1' < "${LIST_JSON}" >/dev/null 2>&1; then
+if [[ ! -s "${LIST_JSON}" ]] || ! ruby -rjson -e 'd = JSON.parse(STDIN.read); d = d["items"] if d.is_a?(Hash); exit(d.to_a.any? ? 0 : 1)' < "${LIST_JSON}" >/dev/null 2>&1; then
   log_info "No worktrees or branches to display."
   exit 0
 fi

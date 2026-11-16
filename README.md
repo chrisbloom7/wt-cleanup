@@ -13,7 +13,7 @@ wt-cleanup --full       # include CI status, diffs and LLM summaries (slow)
 
 ## Requirements
 
-- [Worktrunk](https://worktrunk.dev) (`wt`)
+- [Worktrunk](https://worktrunk.dev) (`wt`). Both JSON layouts of `wt list` are read: schema 2 (the default since 0.82) and the older bare-array schema 1.
 - [fzf](https://github.com/junegunn/fzf)
 - Ruby (standard library only)
 - bash 4 or newer (macOS ships 3.2; `brew install bash`)

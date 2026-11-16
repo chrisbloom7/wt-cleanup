@@ -407,6 +407,28 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
+# Worktrunk JSON schema 2 (default since Worktrunk 0.82)
+# ---------------------------------------------------------------------------
+
+@test "wt-cleanup: reads the schema-2 envelope from wt list" {
+  cp "${REPO_ROOT}/tests/fixtures/wt-list-schema2.json" "${CANNED_JSON}"
+  _mock_fzf_select "backup/pre-split-1791916477"
+  invoke_yes --yes
+  [ "${status}" -eq 0 ] || { echo "status ${status}: ${output}"; return 1; }
+  [[ "${output}" != *"TypeError"* ]] || { echo "Got: ${output}"; return 1; }
+  grep -q 'remove --no-delete-branch backup/pre-split-1791916477' "${WT_LOG}" || {
+    echo "wt log: $(cat "${WT_LOG}")"; return 1
+  }
+}
+
+@test "wt-cleanup: exits cleanly when wt list returns an empty schema-2 envelope" {
+  echo '{"schema": 2, "items": []}' > "${CANNED_JSON}"
+  invoke --yes
+  [ "${status}" -eq 0 ]
+  [[ "${output}" == *"No worktrees"* ]] || { echo "Got: ${output}"; return 1; }
+}
+
+# ---------------------------------------------------------------------------
 # Symlinked install
 # ---------------------------------------------------------------------------
 

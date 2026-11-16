@@ -1,0 +1,136 @@
+{
+  "collected": {
+    "ci": false,
+    "summary": false
+  },
+  "items": [
+    {
+      "branch": "fix/worktrunk-json-schema-2",
+      "default_branch": {
+        "ahead": 0,
+        "behind": 0,
+        "diff": {
+          "added": 0,
+          "deleted": 0
+        },
+        "integration": {
+          "reason": "same_commit"
+        },
+        "merge_conflicts": false,
+        "orphan": false
+      },
+      "display": {
+        "state": "same_commit",
+        "statusline": "fix/worktrunk-json-schema-2  \u001b[36m?\u001b[39m\u001b[2m–\u001b[22m",
+        "symbols": "?–"
+      },
+      "head": {
+        "committed_at": "2026-11-16T04:25:34Z",
+        "sha": "05c0a1a22e2b9cf059b89a837332ed817254011f",
+        "short_sha": "05c0a1a",
+        "subject": "Merge pull request #4 from example/example/release-skill"
+      },
+      "worktree": {
+        "branch_mismatch": false,
+        "changes": {
+          "conflicted": false,
+          "deleted": false,
+          "diff": {
+            "added": 0,
+            "deleted": 0
+          },
+          "modified": false,
+          "renamed": false,
+          "staged": false,
+          "untracked": true
+        },
+        "current": true,
+        "detached": false,
+        "duplicate_branch": false,
+        "main": false,
+        "path": "/tmp/repos/wt-cleanup.fix-worktrunk-json-schema-2",
+        "previous": false
+      }
+    },
+    {
+      "branch": "main",
+      "display": {
+        "state": "is_main",
+        "statusline": "main  \u001b[2m^\u001b[22m\u001b[2m|\u001b[22m",
+        "symbols": "^|"
+      },
+      "head": {
+        "committed_at": "2026-11-16T04:25:34Z",
+        "sha": "05c0a1a22e2b9cf059b89a837332ed817254011f",
+        "short_sha": "05c0a1a",
+        "subject": "Merge pull request #4 from example/example/release-skill"
+      },
+      "upstream": {
+        "ahead": 0,
+        "behind": 0,
+        "branch": "main",
+        "remote": "origin"
+      },
+      "worktree": {
+        "branch_mismatch": false,
+        "changes": {
+          "conflicted": false,
+          "deleted": false,
+          "diff": {
+            "added": 0,
+            "deleted": 0
+          },
+          "modified": false,
+          "renamed": false,
+          "staged": false,
+          "untracked": false
+        },
+        "current": false,
+        "detached": false,
+        "duplicate_branch": false,
+        "main": true,
+        "path": "/tmp/repos/wt-cleanup",
+        "previous": true
+      }
+    },
+    {
+      "branch": "backup/pre-split-1791916477",
+      "default_branch": {
+        "ahead": 0,
+        "behind": 13,
+        "diff": {
+          "added": 0,
+          "deleted": 0
+        },
+        "integration": {
+          "reason": "ancestor"
+        },
+        "merge_conflicts": false,
+        "orphan": false
+      },
+      "display": {
+        "state": "integrated",
+        "statusline": "backup/pre-split-1791916477  \u001b[2m/\u001b[22m\u001b[2m⊂\u001b[22m  \u001b[2m\u001b[31m↓13\u001b[0m",
+        "symbols": "/⊂"
+      },
+      "head": {
+        "committed_at": "2026-05-22T16:00:37Z",
+        "sha": "ddddbc35b0abb14f62ed4b2404d3b153f6ec9ac1",
+        "short_sha": "ddddbc3",
+        "subject": "wt_cleanup: add fzf-based worktree removal script + worktrunk config"
+      }
+    }
+  ],
+  "repo": {
+    "default_branch": "main",
+    "forge": {
+      "host": "github.com",
+      "name": "wt-cleanup",
+      "owner": "example",
+      "provider": "github",
+      "remote": "origin",
+      "url": "https://github.com/example/wt-cleanup"
+    }
+  },
+  "schema": 2
+}
