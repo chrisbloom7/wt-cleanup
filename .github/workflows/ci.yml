@@ -27,6 +27,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199  # v1.338.0
+        with:
+          ruby-version: '3.3'
+
       - name: Install bats-core and bash 4+ (macOS)
         if: runner.os == 'macOS'
         run: brew install bats-core bash
@@ -38,7 +43,9 @@ jobs:
           sudo /tmp/bats-core/install.sh /usr/local
 
       - name: Run tests
-        run: ./run-tests
+        run: |
+          ruby --version
+          ./run-tests
 
   install-smoke:
     name: Install smoke test (${{ matrix.os }})
@@ -68,11 +75,36 @@ jobs:
           ./uninstall
           test ! -e "${HOME}/.local/bin/wt-cleanup"
 
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run ShellCheck (warnings and above) on every shell script
+        run: |
+          set -euo pipefail
+          shellcheck --version
+          mapfile -t scripts < <(
+            git ls-files -z | while IFS= read -r -d '' f; do
+              case "${f}" in
+                *.sh|*.bash) echo "${f}" ;;
+                *) head -n 1 "${f}" | grep -Eq '^#!.*\b(ba|da|k)?sh\b' && echo "${f}" || true ;;
+              esac
+            done
+          )
+          printf 'Checking: %s\n' "${scripts[@]}"
+          shellcheck --severity=warning "${scripts[@]}"
+
   # Single required-check target: fails unless every needed job succeeded
   # (a skipped or cancelled job counts as a failure).
   ci-gate:
     name: ci-gate
-    needs: [test, install-smoke]
+    needs: [test, install-smoke, shellcheck]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
