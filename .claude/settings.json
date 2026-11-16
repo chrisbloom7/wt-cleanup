@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./run-tests)",
+      "Bash(./run-tests *)",
+      "Bash(bash -n *)",
+      "Bash(ruby -c *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/syntax-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
