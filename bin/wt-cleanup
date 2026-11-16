@@ -287,9 +287,15 @@ source "${STATE_FILE}"
 # Build the wt remove argument list
 # ---------------------------------------------------------------------------
 remove_flags=()
+# The sourced state file defines these four variables; ShellCheck cannot see through the dynamic
+# source, so each line below carries a narrow SC2154 disable (false "referenced but not assigned").
+# shellcheck disable=SC2154
 [[ "${delete_branch}" == "false" ]] && remove_flags+=("--no-delete-branch")
+# shellcheck disable=SC2154
 [[ "${force_delete}"  == "true"  ]] && remove_flags+=("--force-delete")
+# shellcheck disable=SC2154
 [[ "${force}"         == "true"  ]] && remove_flags+=("--force")
+# shellcheck disable=SC2154
 [[ "${no_hooks}"      == "true"  ]] && remove_flags+=("--no-hooks")
 
 # ---------------------------------------------------------------------------
