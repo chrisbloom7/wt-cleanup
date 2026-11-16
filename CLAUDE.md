@@ -44,3 +44,8 @@ and bash 4+ (macOS ships 3.2: `brew install bash`).
 `.claude/settings.json` allows `./run-tests` and registers `syntax-check.sh`, a hook that runs
 `bash -n` on edited shell files and `ruby -c` on edited `.rb` files. It skips quietly when a needed
 tool is missing.
+
+Changes to `.claude/` (hooks and the allowlist) and to this file run or steer Claude Code on the machine
+of whoever opens the repo, so `.github/CODEOWNERS` routes them to the maintainer. When reviewing an
+outside PR that touches them, read the diff first (`gh pr diff <number> -- .claude CLAUDE.md`) before
+checking the branch out and starting Claude Code there.
