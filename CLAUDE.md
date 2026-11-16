@@ -15,8 +15,11 @@ plus a Ruby helper (standard library only). macOS and Linux.
 ./uninstall
 ```
 
-Needs `bats-core` (`brew install bats-core`; override the path with `BATS_BIN`), `ruby`, `fzf`, `wt`
-and bash 4+ (macOS ships 3.2: `brew install bash`).
+Other `--` flags are passed through to bats; `--filter` is also applied to the Ruby specs.
+
+Needs `bats-core` (`brew install bats-core`), `ruby`, `fzf`, `wt` and bash 4+ (macOS ships 3.2:
+`brew install bash`). `run-tests` uses `bats` from `PATH`, else `BATS_BIN` (default
+`/opt/homebrew/bin/bats`).
 
 ## Architecture
 
@@ -25,7 +28,8 @@ and bash 4+ (macOS ships 3.2: `brew install bash`).
   text, so keep that block and the README usage section in step.
 - `libexec/wt-cleanup/wt_cleanup_helper.rb`: parsing and formatting for the picker and preview.
 - `tests/bin/wt-cleanup.bats` (CLI) and `tests/helpers/wt_cleanup_helper_spec.rb` (helper);
-  `tests/test_helper.bash` is the shared bats setup.
+  `tests/test_helper.bash` is the shared bats setup. `tests/fixtures/wt-list-schema2.json` is a recorded
+  `wt list --format json` sample (Worktrunk 0.82, schema 2, paths scrubbed) that both suites read.
 
 ## Gotchas
 
@@ -43,11 +47,10 @@ and bash 4+ (macOS ships 3.2: `brew install bash`).
 
 ## Claude Code setup
 
-`.claude/settings.json` allows `./run-tests` and registers `syntax-check.sh`, a hook that runs
-`bash -n` on edited shell files and `ruby -c` on edited `.rb` files. It skips quietly when a needed
-tool is missing.
+`.claude/settings.json` holds the allowlist and a PostToolUse hook (`.claude/hooks/syntax-check.sh`)
+that syntax-checks edited shell and Ruby files, plus `shellcheck` errors when it is installed.
 
-Changes to `.claude/` (hooks and the allowlist) and to this file run or steer Claude Code on the machine
-of whoever opens the repo, so `.github/CODEOWNERS` routes them to the maintainer. When reviewing an
-outside PR that touches them, read the diff first (`gh pr diff <number> -- .claude CLAUDE.md`) before
-checking the branch out and starting Claude Code there.
+Changes to `.claude/` and to this file run or steer Claude Code on the machine of whoever opens the
+repo, so `.github/CODEOWNERS` routes them to the maintainer. When reviewing an outside PR that touches
+them, read the diff first (`gh pr diff <number> -- .claude CLAUDE.md`) before checking the branch out
+and starting Claude Code there.
