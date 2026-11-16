@@ -28,7 +28,9 @@ Needs `bats-core` (`brew install bats-core`), `ruby`, `fzf`, `wt` and bash 4+ (m
   text, so keep that block and the README usage section in step.
 - `libexec/wt-cleanup/wt_cleanup_helper.rb`: parsing and formatting for the picker and preview.
 - `tests/bin/wt-cleanup.bats` (CLI) and `tests/helpers/wt_cleanup_helper_spec.rb` (helper);
-  `tests/test_helper.bash` is the shared bats setup. `tests/fixtures/wt-list-schema2.json` is a recorded
+  `tests/test_helper.bash` is the shared bats setup: `_setup_common` makes a temp dir per test with a
+  `mock_bin/` for stubbing commands such as `wt` and `fzf`, and symlinks `bash` into it so tests that
+  restrict `PATH` still find a modern bash. `tests/fixtures/wt-list-schema2.json` is a recorded
   `wt list --format json` sample (Worktrunk 0.82, schema 2, paths scrubbed) that both suites read.
 
 ## Gotchas
@@ -36,8 +38,10 @@ Needs `bats-core` (`brew install bats-core`), `ruby`, `fzf`, `wt` and bash 4+ (m
 - Bash 4+ only. Do not use features that need newer than 4, and do not assume the system `/bin/bash`.
 - Ruby specs run with plain `ruby <file>`, not rspec. `./run-tests` runs both suites and exits non-zero
   if either fails.
-- CI (`.github/workflows/ci.yml`) runs on macOS and Linux and includes an install smoke test. Actions
-  are pinned by commit SHA with a version comment; keep that when editing workflows.
+- CI (`.github/workflows/ci.yml`) has four jobs: `test` (Ruby 3.3) and `install-smoke` on macOS and
+  Linux, `shellcheck` (`--severity=warning` on every tracked shell script) and `ci-gate`. `ci-gate` is
+  the single required check on `main`: add any new job to its `needs` list. Actions are pinned by
+  commit SHA with a version comment; keep that when editing workflows.
 - Keep `CHANGELOG.md` current under `[Unreleased]`. Use the `release-wt-cleanup` skill for releases
   (`.claude/skills/release-wt-cleanup/SKILL.md`): it is the release parameters for the shared
   `chrisbloom7-development:release` skill from the `ai-tools` marketplace (install that first). A
@@ -48,7 +52,8 @@ Needs `bats-core` (`brew install bats-core`), `ruby`, `fzf`, `wt` and bash 4+ (m
 ## Claude Code setup
 
 `.claude/settings.json` holds the allowlist and a PostToolUse hook (`.claude/hooks/syntax-check.sh`)
-that syntax-checks edited shell and Ruby files, plus `shellcheck` errors when it is installed.
+that syntax-checks edited shell and Ruby files. For edited bash files it also runs `shellcheck -S error`
+when shellcheck is installed, while CI gates at `--severity=warning`, so clear warnings before pushing.
 
 Changes to `.claude/` and to this file run or steer Claude Code on the machine of whoever opens the
 repo, so `.github/CODEOWNERS` routes them to the maintainer. When reviewing an outside PR that touches
