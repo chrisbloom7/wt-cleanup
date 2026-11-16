@@ -34,9 +34,11 @@ and bash 4+ (macOS ships 3.2: `brew install bash`).
   if either fails.
 - CI (`.github/workflows/ci.yml`) runs on macOS and Linux and includes an install smoke test. Actions
   are pinned by commit SHA with a version comment; keep that when editing workflows.
-- Keep `CHANGELOG.md` current under `[Unreleased]`. Releases go through a `chore/release-vX.Y.Z` PR,
-  then a `vX.Y.Z` tag after the merge. The Homebrew formula lives in `chrisbloom7/homebrew-tap` and is
-  bumped there, not here.
+- Keep `CHANGELOG.md` current under `[Unreleased]`. Use the `release-wt-cleanup` skill for releases
+  (`.claude/skills/release-wt-cleanup/SKILL.md`): it is the release parameters for the shared
+  `chrisbloom7-development:release` skill from the `ai-tools` marketplace (install that first). A
+  release is a `chore/release-vX.Y.Z` PR, then an annotated `vX.Y.Z` tag after the merge. The Homebrew
+  formula lives in `chrisbloom7/homebrew-tap` and is bumped there, not here.
 - The default branch is `main`; changes go through PRs.
 
 ## Claude Code setup
