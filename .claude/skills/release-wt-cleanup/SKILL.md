@@ -22,7 +22,7 @@ PR, confirm before pushing the tag). If it is not available, stop and tell the o
 - pr_body_extra: "After merging: tag vX.Y.Z on the merge commit, then bump the formula in chrisbloom7/homebrew-tap."
 - audit:
   - (blocking) `bin/wt-cleanup --help` (the leading comment block) vs the README Usage section and key table, and the options the script parses.
-  - (advisory, propose edits and wait for approval) README vs `[Unreleased]`. Check that the Requirements list (Worktrunk, fzf, Ruby, bash 4+) is current. The README Install section still says the formula is available "once the formula is published"; the formula is published, so propose removing that wording.
+  - (advisory, propose edits and wait for approval) README vs `[Unreleased]`. Check that the Requirements list (Worktrunk, fzf, Ruby, bash 4+) and the Install section (Homebrew command, the `brew trust` note) are current.
 - post_tag:
   1. `curl -fsIL https://github.com/chrisbloom7/wt-cleanup/archive/refs/tags/vX.Y.Z.tar.gz | head -1` must be HTTP 200.
   2. Tap bump: formula `wt-cleanup`, repo `chrisbloom7/wt-cleanup`; stop if the formula is not on the tap's `main`. After the tap merge, `brew update && brew upgrade wt-cleanup` and confirm `wt-cleanup --help` prints its usage.
