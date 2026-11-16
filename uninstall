@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# uninstall — remove the wt-cleanup symlink created by ./install
+#
+# Usage:
+#   ./uninstall [<install-dir>]
+#
+# Default install directory: ~/.local/bin
+
+set -euo pipefail
+
+INSTALL_DIR="${1:-${HOME}/.local/bin}"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+LINK="${INSTALL_DIR}/wt-cleanup"
+
+if [[ ! -L "${LINK}" ]]; then
+  echo "Nothing to remove: ${LINK} is not a symlink." >&2
+  exit 0
+fi
+
+if [[ "$(readlink "${LINK}")" != "${REPO_DIR}/bin/wt-cleanup" ]]; then
+  echo "Not removing ${LINK}: it does not point at ${REPO_DIR}/bin/wt-cleanup." >&2
+  exit 1
+fi
+
+rm "${LINK}"
+echo "Removed: ${LINK}"
